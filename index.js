@@ -28,15 +28,47 @@ window.onload = () => {
     });
 
     circles.forEach((c, i, cs) => {
-      getCircleBig(draw, c.x, c.y, c.r, i, c.side > 0 ? "red" : "aqua");
-    });
-
-    circles.forEach((c, i, cs) => {
       const next = (i + 1) % cs.length;
 
       c.oneSeg = c.nowSegs.filter(n => cs[next].prevSegs.includes(n))[0];
+    });
 
+    circles.forEach((c, i, cs) => {
+      getCircleBig(draw, c.x, c.y, c.r, i, c.side > 0 ? "red" : "aqua");
+    });
+
+    var path = draw.path("M20 20 A20 20 0 1 0 100 50 v25 C50 125 0 85 0 85 z");
+    path.fill("none").move(20, 20);
+    path.stroke({
+      width: 4
+    });
+
+    circles.forEach((c, i, cs) => {
+      const cprev = cs[(i - 1 + cs.length) % cs.length];
       const s = c.segments[c.oneSeg];
+      const sprev = cprev.segments[cprev.oneSeg];
+
+      const aside = arcSide(sprev, s);
+      var flag1, flag2;
+
+      if (c.side > 0) {
+        flag1 = aside < 0 ? 1 : 0;
+        flag2 = 1;
+      } else {
+        flag1 = aside > 0 ? 1 : 0;
+        flag2 = 0;
+      }
+
+      const val = [c.r, c.r, 0, flag1, flag2, s[0], s[1]];
+      const arc = "M" + sprev[2] + " " + sprev[3] + " A" + val.join(" ");
+
+      arcSide(sprev, s);
+
+      const path = draw.path(arc);
+      path.fill("none").stroke({
+        width: 4
+      });
+
       drawLine(s[0], s[1], s[2], s[3], "pink", "green", c.oneSeg);
     });
   };
@@ -44,14 +76,36 @@ window.onload = () => {
   redraw();
 };
 
+function arcSide(seg1, seg2) {
+  const difx = seg2[2] - seg1[0];
+  const dify = seg2[3] - seg1[1];
+  const norm2 = [
+    seg2[0] - difx,
+    seg2[1] - dify,
+    seg2[2] - difx,
+    seg2[3] - difx
+  ];
+
+  const d = sideOfLine(
+    seg1[0],
+    seg1[1],
+    seg1[2],
+    seg1[3],
+    seg2[0] - difx,
+    seg2[1] - dify
+  );
+
+  return d;
+}
+
 function getCircleBig(draw, cx, cy, r, ind, fill = "black") {
   const retc = draw
     .circle(r * 2)
     .attr({ fill, cx: cx + dispx, cy: cy + dispy });
-  const text = draw.text("" + ind);
-  text
-    .move(cx - 5, cy - 10)
-    .font({ fill: "black", family: "Inconsolata", size: 20 });
+  // const text = draw.text("" + ind);
+  // text
+  //   .move(cx - 5, cy - 10)
+  //   .font({ fill: "black", family: "Inconsolata", size: 20 });
 
   retc.moving = false;
   retc.mousedown(() => {
@@ -74,7 +128,7 @@ function getCircle(draw, cx, cy, r, fill = "black") {
 function getLine(x0, y0, x1, y1) {
   draw
     .line(dispx + x0, dispy + y0, dispx + x1, dispy + y1)
-    .stroke({ width: 1 });
+    .stroke({ width: 4 });
 }
 
 function quad(a, b, c) {
@@ -87,11 +141,11 @@ function drawLine(x1, y1, x2, y2, col1, col2, ind) {
   const rad = 9;
   getLine(x1, y1, x2, y2);
 
-  getCircle(draw, x1, y1, rad, col1);
-  getCircle(draw, x2, y2, rad, col2);
-
-  draw.text("" + ind).move(x1, y1).font({ fill: "black", size: 8 });
-  draw.text("" + ind).move(x2, y2).font({ fill: "black", size: 8 });
+  // getCircle(draw, x1, y1, rad, col1);
+  // getCircle(draw, x2, y2, rad, col2);
+  //
+  // draw.text("" + ind).move(x1, y1).font({ fill: "black", size: 8 });
+  // draw.text("" + ind).move(x2, y2).font({ fill: "black", size: 8 });
 }
 
 function setupCircle(cnow, now, circles) {
