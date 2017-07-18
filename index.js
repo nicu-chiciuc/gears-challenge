@@ -3,6 +3,8 @@
 const c = console;
 const pow = Math.pow;
 const sqrt = Math.sqrt;
+const pi4 = 4 * Math.PI;
+const pi2 = 2 * Math.PI;
 
 var draw;
 var redraw;
@@ -20,6 +22,20 @@ window.onload = () => {
   redraw = function() {
     draw.clear();
 
+    var sprok = draw
+      .circle(24)
+      .attr({
+        fill: "none",
+        cx: 100,
+        cy: 100,
+        "stroke-dasharray": "" + 2 * Math.PI,
+        fill: "pink"
+      })
+      .stroke({ width: 4, color: "gray" })
+      .animate()
+      .attr({ "stroke-dashoffset": 4 * Math.PI })
+      .loop();
+
     circles.map(setupCircle);
 
     circles.forEach(c => {
@@ -31,17 +47,16 @@ window.onload = () => {
       const next = (i + 1) % cs.length;
 
       c.oneSeg = c.nowSegs.filter(n => cs[next].prevSegs.includes(n))[0];
+      c.seg = c.segments[c.oneSeg];
     });
 
     circles.forEach((c, i, cs) => {
-      getCircleBig(draw, c.x, c.y, c.r, i, c.side > 0 ? "red" : "aqua");
+      getCircleBig(draw, c.x, c.y, c.r, i, c.side);
     });
 
-    var path = draw.path("M20 20 A20 20 0 1 0 100 50 v25 C50 125 0 85 0 85 z");
-    path.fill("none").move(20, 20);
-    path.stroke({
-      width: 4
-    });
+    const cl = circles[circles.length - 1];
+
+    var bpath = "M" + cl.seg[0] + " " + cl.seg[1];
 
     circles.forEach((c, i, cs) => {
       const cprev = cs[(i - 1 + cs.length) % cs.length];
@@ -60,17 +75,38 @@ window.onload = () => {
       }
 
       const val = [c.r, c.r, 0, flag1, flag2, s[0], s[1]];
-      const arc = "M" + sprev[2] + " " + sprev[3] + " A" + val.join(" ");
 
       arcSide(sprev, s);
 
-      const path = draw.path(arc);
-      path.fill("none").stroke({
-        width: 4
-      });
-
-      drawLine(s[0], s[1], s[2], s[3], "pink", "green", c.oneSeg);
+      bpath += "L" + sprev[2] + " " + sprev[3];
+      bpath += "A" + val.join(" ");
     });
+
+    bpath += "z";
+
+    const path = draw.path(bpath);
+    const totalLength = path.node.getTotalLength();
+    const approx = Math.floor(totalLength / pi4);
+
+    const better4pi = totalLength / approx;
+
+    path
+      .fill("none")
+      .attr({
+        fill: "none",
+        "stroke-dasharray": better4pi / 2
+      })
+      .stroke({ width: 5 })
+      .animate()
+      .attr({ "stroke-dashoffset": better4pi })
+      .loop();
+
+    draw
+      .path(bpath)
+      .attr({
+        fill: "none"
+      })
+      .stroke({ width: 2 });
   };
 
   redraw();
@@ -98,14 +134,30 @@ function arcSide(seg1, seg2) {
   return d;
 }
 
-function getCircleBig(draw, cx, cy, r, ind, fill = "black") {
+function getCircleBig(draw, cx, cy, r, ind, side) {
   const retc = draw
     .circle(r * 2)
-    .attr({ fill, cx: cx + dispx, cy: cy + dispy });
+    .attr({ fill: side > 0 ? "red" : "green", cx: cx + dispx, cy: cy + dispy });
   // const text = draw.text("" + ind);
   // text
   //   .move(cx - 5, cy - 10)
   //   .font({ fill: "black", family: "Inconsolata", size: 20 });
+  const startOffset = 0;
+  const sprok = draw
+    .circle(r * 2)
+    .attr({
+      fill: "none",
+      cx,
+      cy,
+      "stroke-dasharray": pi2,
+      "stroke-dashoffset": startOffset
+    })
+    .stroke({ width: 4, color: "gray" })
+    .animate()
+    .attr({
+      "stroke-dashoffset": side > 0 ? pi4 + startOffset : -pi4 + startOffset
+    })
+    .loop();
 
   retc.moving = false;
   retc.mousedown(() => {
@@ -221,16 +273,7 @@ function equal(a, b) {
   return Math.abs(a - b) < eps;
 }
 
-const data = [
-  [0, 0, 60],
-  [44, 140, 17],
-  [-204, 140, 16],
-  [-160, 0, 61],
-  [-112, 188, 12],
-  [-190, 300, 31],
-  [30, 300, 30],
-  [-48, 188, 12]
-];
+const data = [[0, 0, 16], [-160, 0, 12], [-112, 188, 24], [-50, 188, 20]];
 
 const betData = data.map(([x, y, r]) => [x + 400, y + 100, r]);
 
