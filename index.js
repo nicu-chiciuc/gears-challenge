@@ -6,6 +6,9 @@ const sqrt = Math.sqrt;
 const pi4 = 4 * Math.PI;
 const pi2 = 2 * Math.PI;
 
+const darker = "#606060";
+const lighter = "#A0A0A0";
+
 var draw;
 var redraw;
 var dataNow;
@@ -22,19 +25,19 @@ window.onload = () => {
   redraw = function() {
     draw.clear();
 
-    var sprok = draw
-      .circle(24)
-      .attr({
-        fill: "none",
-        cx: 100,
-        cy: 100,
-        "stroke-dasharray": "" + 2 * Math.PI,
-        fill: "pink"
-      })
-      .stroke({ width: 4, color: "gray" })
-      .animate()
-      .attr({ "stroke-dashoffset": 4 * Math.PI })
-      .loop();
+    // var sprok = draw
+    //   .circle(24)
+    //   .attr({
+    //     fill: "none",
+    //     cx: 100,
+    //     cy: 100,
+    //     "stroke-dasharray": "" + 2 * Math.PI,
+    //     fill: "pink"
+    //   })
+    //   .stroke({ width: 4, color: "gray" })
+    //   .animate()
+    //   .attr({ "stroke-dashoffset": 4 * Math.PI })
+    //   .loop();
 
     circles.map(setupCircle);
 
@@ -135,9 +138,6 @@ function arcSide(seg1, seg2) {
 }
 
 function getCircleBig(draw, cx, cy, r, ind, side) {
-  const retc = draw
-    .circle(r * 2)
-    .attr({ fill: side > 0 ? "red" : "green", cx: cx + dispx, cy: cy + dispy });
   // const text = draw.text("" + ind);
   // text
   //   .move(cx - 5, cy - 10)
@@ -152,12 +152,21 @@ function getCircleBig(draw, cx, cy, r, ind, side) {
       "stroke-dasharray": pi2,
       "stroke-dashoffset": startOffset
     })
-    .stroke({ width: 4, color: "gray" })
+    .stroke({ width: 4, color: lighter })
     .animate()
     .attr({
       "stroke-dashoffset": side > 0 ? pi4 + startOffset : -pi4 + startOffset
     })
     .loop();
+
+  getCircle(draw, cx, cy, r - 1.5, lighter);
+  getCircle(draw, cx, cy, r - 4.5, darker);
+  getCircle(draw, cx, cy, 3, lighter);
+
+  const retc = draw
+    .circle(r * 2)
+    // .attr({ fill: side > 0 ? "red" : "green", cx: cx + dispx, cy: cy + dispy });
+    .attr({ fill: "rgba(0,0,0,0)", cx: cx + dispx, cy: cy + dispy });
 
   retc.moving = false;
   retc.mousedown(() => {
@@ -174,7 +183,7 @@ function getCircleBig(draw, cx, cy, r, ind, side) {
 }
 
 function getCircle(draw, cx, cy, r, fill = "black") {
-  return draw.circle(r).attr({ fill, cx: cx + dispx, cy: cy + dispy });
+  return draw.circle(r * 2).attr({ fill, cx: cx + dispx, cy: cy + dispy });
 }
 
 function getLine(x0, y0, x1, y1) {
