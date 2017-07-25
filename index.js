@@ -31,10 +31,10 @@ window.onload = () => {
         "stroke-dasharray": "" + 2 * Math.PI,
         fill: "pink"
       })
-      .stroke({ width: 4, color: "gray" })
-      .animate()
-      .attr({ "stroke-dashoffset": 4 * Math.PI })
-      .loop();
+      .stroke({ width: 4, color: "gray" });
+    // .animate()
+    // .attr({ "stroke-dashoffset": 4 * Math.PI })
+    // .loop();
 
     circles.map(setupCircle);
 
@@ -51,12 +51,14 @@ window.onload = () => {
     });
 
     circles.forEach((c, i, cs) => {
-      getCircleBig(draw, c.x, c.y, c.r, i, c.side);
+      getCircleBig(draw, c);
     });
 
     const cl = circles[circles.length - 1];
 
     var bpath = "M" + cl.seg[0] + " " + cl.seg[1];
+
+    const tempSet = draw.set();
 
     circles.forEach((c, i, cs) => {
       const cprev = cs[(i - 1 + cs.length) % cs.length];
@@ -79,6 +81,7 @@ window.onload = () => {
       arcSide(sprev, s);
 
       bpath += "L" + sprev[2] + " " + sprev[3];
+
       bpath += "A" + val.join(" ");
     });
 
@@ -96,10 +99,10 @@ window.onload = () => {
         fill: "none",
         "stroke-dasharray": better4pi / 2
       })
-      .stroke({ width: 5 })
-      .animate()
-      .attr({ "stroke-dashoffset": better4pi })
-      .loop();
+      .stroke({ width: 5 });
+    // .animate()
+    // .attr({ "stroke-dashoffset": better4pi })
+    // .loop();
 
     draw
       .path(bpath)
@@ -134,30 +137,37 @@ function arcSide(seg1, seg2) {
   return d;
 }
 
-function getCircleBig(draw, cx, cy, r, ind, side) {
+function getCircleBig(draw, c) {
+  const x = c.x;
+  const y = c.y;
+  const r = c.r;
+  const index = c.index;
+  const side = c.side;
+
   const retc = draw
-    .circle(r * 2)
-    .attr({ fill: side > 0 ? "red" : "green", cx: cx + dispx, cy: cy + dispy });
-  // const text = draw.text("" + ind);
-  // text
-  //   .move(cx - 5, cy - 10)
-  //   .font({ fill: "black", family: "Inconsolata", size: 20 });
+    .circle((r - 2) * 2 + 0.1)
+    .attr({ fill: side > 0 ? "red" : "green", cx: x + dispx, cy: y + dispy });
+  const text = draw.text("" + index);
+  text
+    .move(x - 5, y - 10)
+    .font({ fill: "black", family: "Inconsolata", size: 20 });
+
   const startOffset = 0;
   const sprok = draw
     .circle(r * 2)
     .attr({
       fill: "none",
-      cx,
-      cy,
+      cx: x,
+      cy: y,
       "stroke-dasharray": pi2,
       "stroke-dashoffset": startOffset
     })
-    .stroke({ width: 4, color: "gray" })
-    .animate()
-    .attr({
-      "stroke-dashoffset": side > 0 ? pi4 + startOffset : -pi4 + startOffset
-    })
-    .loop();
+    .stroke({ width: 4, color: "gray" });
+  // .animate()
+  // .attr({
+  //   "stroke-dashoffset": side > 0 ? pi4 + startOffset : -pi4 + startOffset
+  // })
+  // .loop();
 
   retc.moving = false;
   retc.mousedown(() => {
